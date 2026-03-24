@@ -33,6 +33,26 @@ const resolveAssetUrl = (value: string | null | undefined) => {
   return BACKEND_URL ? `${BACKEND_URL}/${clean}` : null
 }
 
+type BannerState = {
+  logo: string | null
+  companyName: string
+  address: string
+  phone: string
+  website: string
+  enabled: boolean
+}
+
+type EndScreenState = {
+  logo: string | null
+  offer: string
+  companyName: string
+  address: string
+  phone: string
+  website: string
+  socialLinks: string[]
+  enabled: boolean
+}
+
 export default function EditorLayout({
   assets,
   onOpenGenerateModal
@@ -43,7 +63,7 @@ export default function EditorLayout({
   const [currentSlide, setCurrentSlide] = useState(0)
   const [playing, setPlaying] = useState(false)
 
-  const [banner, setBanner] = useState({
+  const [banner, setBanner] = useState<BannerState>({
     logo: null,
     companyName: "",
     address: "",
@@ -52,14 +72,14 @@ export default function EditorLayout({
     enabled: true
   })
 
-  const [endScreen, setEndScreen] = useState({
+  const [endScreen, setEndScreen] = useState<EndScreenState>({
     logo: null,
     offer: "",
     companyName: "",
     address: "",
     phone: "",
     website: "",
-    socialLinks: [] as string[],
+    socialLinks: [],
     enabled: true
   })
 
@@ -156,7 +176,7 @@ export default function EditorLayout({
 
     const slideCount = 6
 
-    let preparedSlides = imageUrls.slice(0, slideCount)
+    let preparedSlides: (string | null)[] = imageUrls.slice(0, slideCount)
 
     while (preparedSlides.length < slideCount) {
       preparedSlides.push(null)
@@ -312,12 +332,39 @@ export default function EditorLayout({
         )}
 
         {activePanel === "banner" && (
-          <BottomBannerSection banner={banner} setBanner={setBanner} />
-        )}
+  <BottomBannerSection
+    banner={banner}
+    setBanner={(updatedBanner) =>
+      setBanner({
+        logo: updatedBanner.logo ?? null,
+        companyName: updatedBanner.companyName ?? "",
+        address: updatedBanner.address ?? "",
+        phone: updatedBanner.phone ?? "",
+        website: updatedBanner.website ?? "",
+        enabled: updatedBanner.enabled ?? true
+      })
+    }
+  />
+)}
+
 
         {activePanel === "end" && (
-          <EndScreenSection endScreen={endScreen} setEndScreen={setEndScreen} />
-        )}
+  <EndScreenSection
+    endScreen={endScreen}
+    setEndScreen={(updatedEndScreen) =>
+      setEndScreen({
+        logo: updatedEndScreen.logo ?? null,
+        offer: updatedEndScreen.offer ?? "",
+        companyName: updatedEndScreen.companyName ?? "",
+        address: updatedEndScreen.address ?? "",
+        phone: updatedEndScreen.phone ?? "",
+        website: updatedEndScreen.website ?? "",
+        socialLinks: updatedEndScreen.socialLinks ?? [],
+        enabled: updatedEndScreen.enabled ?? true
+      })
+    }
+  />
+)}
 
         {activePanel === "qr" && (
           <QRCodeSection
