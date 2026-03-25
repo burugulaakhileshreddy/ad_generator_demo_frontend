@@ -2,6 +2,24 @@
 
 import { useState, useEffect } from "react"
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+const isAbsoluteUrl = (value: string | null | undefined) => {
+  if (!value) return false
+  return value.startsWith("http://") || value.startsWith("https://")
+}
+
+const resolveAssetUrl = (value: string | null | undefined) => {
+  if (!value) return null
+
+  if (isAbsoluteUrl(value)) {
+    return value
+  }
+
+  const clean = value.replaceAll("\\", "/").replace(/^\/+/, "")
+  return BACKEND_URL ? `${BACKEND_URL}/${clean}` : null
+}
+
 interface Props {
   taskId: number
   variantId: number
@@ -27,7 +45,10 @@ export default function SlideshowSection({
   const [audioDuration, setAudioDuration] = useState(30)
 
   const safeSlides = slides || []
-  const safeWebsiteImages = websiteImages || []
+
+  const safeWebsiteImages = (websiteImages || [])
+    .map((img) => resolveAssetUrl(img))
+    .filter(Boolean) as string[]
 
   useEffect(() => {
     const audio = (window as any).editorVoice as HTMLAudioElement
@@ -95,6 +116,8 @@ export default function SlideshowSection({
                   onClick={() => {
                     setActiveSlide(index)
                     setShowModal(true)
+                    setSelectedImage(null)
+                    setUploadedImage(null)
                   }}
                   className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center text-white text-sm transition"
                 >
@@ -163,28 +186,28 @@ export default function SlideshowSection({
                 Select images from website
               </p>
 
-              <div className="grid grid-cols-4 gap-3">
-                {safeWebsiteImages.map((img, i) => {
-                  const fullUrl = `http://127.0.0.1:8000/${img
-                    .replace(/^\/+/, "")
-                    .replaceAll("\\", "/")}`
-
-                  return (
+              {safeWebsiteImages.length > 0 ? (
+                <div className="grid grid-cols-4 gap-3">
+                  {safeWebsiteImages.map((img, i) => (
                     <img
                       key={i}
-                      src={fullUrl}
+                      src={img}
                       onClick={() => {
-                        setSelectedImage(fullUrl)
+                        setSelectedImage(img)
                         setUploadedImage(null)
                       }}
                       className={`h-[70px] w-full object-cover rounded-md cursor-pointer border-2 transition ${
-                        selectedImage === fullUrl ? "border-blue-500" : "border-transparent"
+                        selectedImage === img ? "border-blue-500" : "border-transparent"
                       }`}
                       alt={`Website image ${i + 1}`}
                     />
-                  )
-                })}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 border border-dashed border-[#1e293b] rounded-lg p-4">
+                  No scraped images available
+                </div>
+              )}
             </div>
 
             {/* UPLOAD */}
@@ -199,14 +222,14 @@ export default function SlideshowSection({
                   accept="image/*"
                   onChange={async (e) => {
                     const file = e.target.files?.[0]
-                    if (!file) return
+                    if (!file || !BACKEND_URL) return
 
                     const form = new FormData()
                     form.append("file", file)
 
                     try {
                       const res = await fetch(
-                        `http://127.0.0.1:8000/upload-image/${taskId}/${variantId}`,
+                        `${BACKEND_URL}/upload-image/${taskId}/${variantId}`,
                         {
                           method: "POST",
                           body: form
@@ -216,9 +239,11 @@ export default function SlideshowSection({
                       const data = await res.json()
 
                       if (data.image_url) {
-                        const full = `http://127.0.0.1:8000${data.image_url}`
-                        setUploadedImage(full)
-                        setSelectedImage(null)
+                        const full = resolveAssetUrl(data.image_url)
+                        if (full) {
+                          setUploadedImage(full)
+                          setSelectedImage(null)
+                        }
                       }
                     } catch (err) {
                       console.error("Upload failed", err)
