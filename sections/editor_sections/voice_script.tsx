@@ -44,7 +44,7 @@ export default function VoiceScriptSection({
   const getVoiceDisplayName = (voiceName?: string) => {
     const aliases: Record<string, string> = {
   v1: "Atlas: Male, Bold",
-  v2: "Elzara: FeMale, Soft",
+  v2: "Elzara: Female, Soft",
   v3: "Elara: Female, Soft",
   v4: "Zion: Male, Fast",
   v5: "Orion: Male, Deep"
