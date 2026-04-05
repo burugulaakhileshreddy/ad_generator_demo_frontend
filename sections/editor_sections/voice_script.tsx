@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"
+
 interface Props {
   taskId: number
   variantId: number
@@ -63,7 +66,7 @@ export default function VoiceScriptSection({
       const previousVoiceName = selectedVoice?.voice_name || null
 
       const res = await fetch(
-        `http://127.0.0.1:8000/regenerate-voices/${taskId}`,
+        ``${API_BASE_URL}/regenerate-voices/${taskId}``,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
