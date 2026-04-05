@@ -66,7 +66,7 @@ export default function VoiceScriptSection({
       const previousVoiceName = selectedVoice?.voice_name || null
 
       const res = await fetch(
-        ``${API_BASE_URL}/regenerate-voices/${taskId}``,
+        `${API_BASE_URL}/regenerate-voices/${taskId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
